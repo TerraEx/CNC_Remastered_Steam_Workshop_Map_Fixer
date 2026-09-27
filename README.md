@@ -70,6 +70,8 @@ If this happens, restart the mission again or return to the menu and launch it n
 
 This issue has been observed in **Red Alert** custom missions during testing; it has **not been reproduced in Tiberian Dawn**.
 
+**Example video:** [Red Alert custom mission restart bug demonstration](https://youtu.be/6Pd4T7qVUNk)
+
 ## Why I made this
 
 I first encountered this problem around 2020/2021. Steam Workshop subscriptions downloaded custom maps, but that did not make them conveniently available in-game. I nearly wrote a small utility then, assumed somebody else eventually would, and returned years later to essentially the same problem.
