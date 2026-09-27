@@ -70,7 +70,7 @@ If this happens, restart the mission again or return to the menu and launch it n
 
 This issue has been observed in **Red Alert** custom missions during testing; it has **not been reproduced in Tiberian Dawn**.
 
-**Example video:** [Red Alert custom mission restart bug demonstration](https://youtu.be/6Pd4T7qVUNk)
+**Example video:** [Red Alert custom mission restart bug demonstration](https://youtu.be/nSV65BP1jjg)
 
 ## Why I made this
 
