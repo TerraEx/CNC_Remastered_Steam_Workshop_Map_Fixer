@@ -53,6 +53,23 @@ Native C&C Cache places the untouched Workshop package into C&C's native UGC cac
 
 Direct Local Install places supported map files directly into C&C's local map folders. The map can be installed and playable even though the in-game User Maps browser may still display **Download**, because that browser does not have C&C's native cached-package association for a direct installation.
 
+### Known Red Alert custom mission restart issue
+
+Red Alert Remastered has an intermittent bug when restarting or replaying custom single-player missions. Occasionally, the mission does not initialise correctly after a restart.
+
+Symptoms observed during testing include:
+
+- the opening custom-mission briefing not appearing;
+- mission triggers or scripted events failing to run;
+- mission timers failing to initialise;
+- units starting in an incorrect state.
+
+This was reproduced independently of the Workshop Fixer on a clean installation of C&C Remastered, with default settings, no mods active, no Workshop subscriptions, and maps downloaded entirely through the game's own in-game map browser. It was also reproduced across multiple Red Alert custom missions.
+
+If this happens, restart the mission again or return to the menu and launch it normally. A subsequent restart may also initialise correctly.
+
+This issue has been observed in **Red Alert** custom missions during testing; it has **not been reproduced in Tiberian Dawn**.
+
 ## Why I made this
 
 I first encountered this problem around 2020/2021. Steam Workshop subscriptions downloaded custom maps, but that did not make them conveniently available in-game. I nearly wrote a small utility then, assumed somebody else eventually would, and returned years later to essentially the same problem.
