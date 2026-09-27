@@ -64,7 +64,7 @@ Symptoms observed during testing include:
 - mission timers failing to initialise;
 - units starting in an incorrect state.
 
-This was reproduced independently of the Workshop Fixer on a clean installation of C&C Remastered, with default settings, no mods active, no Workshop subscriptions, and maps downloaded entirely through the game's own in-game map browser. It was also reproduced across multiple Red Alert custom missions.
+This was reproduced independently of the Workshop Fixer on a clean installation of C&C Remastered, with default settings, no mods active, and without manually subscribing through Steam Workshop; the maps were downloaded entirely through the game's own in-game map browser. It was also reproduced across multiple Red Alert custom missions.
 
 If this happens, restart the mission again or return to the menu and launch it normally. A subsequent restart may also initialise correctly.
 
