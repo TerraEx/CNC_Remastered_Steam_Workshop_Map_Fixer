@@ -17,22 +17,18 @@ The executable is unsigned, so Windows SmartScreen may display a warning. Only d
 - Supports both Tiberian Dawn and Red Alert maps.
 - Enables downloaded maps without making you find and download them again through C&C's in-game User Maps browser.
 - Provides List and Gallery views with map previews.
-- Searches map titles or map-provided authors, with combined Game and Map type filters in both views.
-- Shows a sortable Author column in List view; this map metadata is not necessarily the Steam Workshop uploader.
-- Selects visible maps with **Select All**, and reports operation results through brief notifications and Activity.
 - Handles Workshop updates and supports safe, attributable removal from the game.
-- Offers optional Steam Workshop unsubscribe after successful game-side removal.
 - Offers the recommended **Native C&C Cache** method and an advanced **Direct Local Install** method.
 
 ## Screenshots
 
 ![The main List view showing Workshop maps and their game, status, and installation method](assets/docs/main-list.png)
 
-*The v1.1.0 List view shows Author after Map title, with Search, Game and Map type filters plus Select All above the maps.*
+*The List view makes it easy to see and manage downloaded Workshop maps.*
 
 ![The Gallery view showing visual previews of downloaded Workshop maps](assets/docs/gallery-view.png)
 
-*The v1.1.0 Gallery view shares List's filters and selection while showing map previews.*
+*The Gallery view provides map previews while retaining the same selection workflow.*
 
 ![The map context menu with refresh, removal, Workshop, folder, and ID actions](assets/docs/context-menu.png)
 
@@ -46,10 +42,6 @@ The executable is unsigned, so Windows SmartScreen may display a warning. Only d
 4. Run it.
 5. Click **Enable All**, or select maps and choose **Enable Selected**.
 6. Launch C&C Remastered.
-
-Search uses case-insensitive partial matches in map titles or map-provided authors. Combine **Game** (**All** / **TD** / **RA**) with **Map type** (**All** / **SP** / **MP**). Filters survive view switching and Refresh; hidden maps are deselected. To enable only filtered results, use **Select All**, then **Enable Selected**. **Enable All** includes eligible hidden maps and skips Modified Locally and pending Steam cleanup rows.
-
-The **Workshop / cache paths** and **Activity** panels start collapsed to leave more room for maps. Expand Activity to review operation details.
 
 ## Installation methods
 
@@ -93,11 +85,7 @@ You find something you want to play. You subscribe to it. You run the app, click
 ## Safety and privacy
 
 - Workshop source packages are treated as read-only.
-- **Remove from Game** leaves Workshop subscriptions unchanged by default. Its unchecked **Also unsubscribe** option requests Steam unsubscribe only after successful game-side removal; Steam failures do not undo that removal.
-- Optional unsubscribe requires Steam to be running and signed in, and an installed Steam copy of C&C Remastered. A timeout leaves the Steam result unconfirmed; check the Workshop page before retrying.
-- Confirmed unsubscribes with surviving packages show **Unsubscribed — pending Steam cleanup** as read-only rows for the current session. Closing the Fixer allows Steam to process cleanup; Steam controls its timing. This state is not saved across restarts.
-- **Source Unavailable** alone does not prove unsubscribe; no automatic removal follows that status.
-- The Fixer does not subscribe, delete Workshop source packages, or modify Steam Workshop manifests.
+- The Fixer does not subscribe or unsubscribe Workshop items and does not modify Steam Workshop manifests.
 - It does not silently overwrite modified or unowned local files.
 - It collects no telemetry.
 - Steam's public metadata endpoint is used to resolve Workshop metadata; no Steam login or API key is required.
