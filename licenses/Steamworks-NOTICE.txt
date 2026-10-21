@@ -1,0 +1,18 @@
+Steamworks.NET 2024.8.0
+Copyright (c) 2013-2022 Riley Labrecque
+https://github.com/rlabrecque/Steamworks.NET
+MIT terms: Steamworks.NET-LICENSE.txt
+
+Native Steam API redistributable: steam_api64.dll (Windows x64)
+Valve Corporation. All rights reserved.
+This Valve binary is a Steamworks SDK redistributable, distinct from the
+MIT-licensed managed Steamworks.NET wrapper. Valve and Steam trademarks remain
+the property of Valve Corporation. This application is not endorsed by Valve.
+
+Binary provenance: official Steamworks.NET tag 2024.8.0 (SDK 1.60)
+https://github.com/rlabrecque/Steamworks.NET/blob/2024.8.0/com.rlabrecque.steamworks.net/Plugins/steam_api64.dll
+SHA-256: 1ADD7F151FA644870A735AE86E68D1F019F296130D8E7C0A7ED3ECC7482DCCBC
+
+The native Valve binary described above is an external dependency and is not
+included in this source repository. The repository's MIT licence does not grant
+rights to Valve's SDK components; their applicable SDK terms continue to apply.

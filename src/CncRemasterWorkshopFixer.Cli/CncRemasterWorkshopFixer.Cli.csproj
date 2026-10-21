@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>CncRemasterWorkshopFixer.Cli</AssemblyName>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <InformationalVersion>1.1.0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>C&amp;C Remastered Workshop Map Fixer CLI</Product>
+    <Company>Terra_Ex</Company>
+    <Copyright>Copyright © 2026 Terra_Ex</Copyright>
+    <Description>Diagnostic and native-cache command-line interface for C&amp;C Remastered Workshop maps.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../CncRemasterWorkshopFixer/CncRemasterWorkshopFixer.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CncRemasterWorkshopFixer.App/CncRemasterWorkshopFixer.App.csproj" />
+    <Project Path="src/CncRemasterWorkshopFixer.Cli/CncRemasterWorkshopFixer.Cli.csproj" />
+    <Project Path="src/CncRemasterWorkshopFixer/CncRemasterWorkshopFixer.csproj" />
+  </Folder>
+</Solution>

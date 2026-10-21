@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\Icons\TiberiumCore.ico</ApplicationIcon>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <InformationalVersion>1.1.0</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Product>C&amp;C Remastered Steam Workshop Map Fixer</Product>
+    <AssemblyTitle>C&amp;C Remastered Steam Workshop Map Fixer</AssemblyTitle>
+    <Company>Terra_Ex</Company>
+    <Copyright>Copyright © 2026 Terra_Ex</Copyright>
+    <Description>Safely enables downloaded Steam Workshop maps through C&amp;C's native UGC cache or advanced direct local extraction.</Description>
+    <!-- The application is English-only; prevent framework satellite assemblies for other UI cultures. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Release ZIPs are user distributions rather than debugging bundles. -->
+    <DebugType Condition="'$(Configuration)' == 'Release'">None</DebugType>
+    <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
+    <!-- Steamworks.NET's NuGet package contains only the managed wrapper.
+         Keep its matching native DLL beside the executable in both release variants,
+         so loading works even while the process uses the installed game's directory. -->
+    <Content Include="Native\win-x64\steam_api64.dll" Link="steam_api64.dll"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
+             ExcludeFromSingleFile="true" />
+    <Resource Include="Assets\Icons\TiberiumCore.ico" />
+    <Resource Include="Assets\Icons\TiberiumCore_1024.png" />
+    <ProjectReference Include="../CncRemasterWorkshopFixer/CncRemasterWorkshopFixer.csproj" />
+  </ItemGroup>
+</Project>

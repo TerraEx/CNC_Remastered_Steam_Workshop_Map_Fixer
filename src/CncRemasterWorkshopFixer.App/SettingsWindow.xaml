@@ -1,0 +1,112 @@
+<Window x:Class="CncRemasterWorkshopFixer.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings" Width="640" Height="740" MinWidth="560" MinHeight="560"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource WindowBrush}" Foreground="{DynamicResource TextBrush}"
+        FontFamily="Segoe UI" UseLayoutRounding="True" SnapsToDevicePixels="True">
+    <Grid Margin="22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Settings" FontSize="25" FontWeight="SemiBold" Margin="0,0,0,16" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="5" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Appearance" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <TextBlock Text="Theme" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,5" />
+                        <WrapPanel ToolTip="Choose whether the application follows Windows, or uses Light or Dark mode">
+                            <RadioButton x:Name="SystemThemeChoice" Content="System" Tag="System"
+                                         GroupName="Theme" Style="{StaticResource ThemeChoice}"
+                                         Checked="ThemeChoice_Checked" />
+                            <RadioButton x:Name="LightThemeChoice" Content="Light" Tag="Light"
+                                         GroupName="Theme" Style="{StaticResource ThemeChoice}"
+                                         Checked="ThemeChoice_Checked" Margin="6,0,0,0" />
+                            <RadioButton x:Name="DarkThemeChoice" Content="Dark" Tag="Dark"
+                                         GroupName="Theme" Style="{StaticResource ThemeChoice}"
+                                         Checked="ThemeChoice_Checked" Margin="6,0,0,0" />
+                        </WrapPanel>
+                        <TextBlock Text="Appearance" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,5" />
+                        <WrapPanel>
+                            <RadioButton x:Name="StandardAppearanceChoice" Content="Standard" Tag="Standard"
+                                         GroupName="Appearance" Style="{StaticResource ThemeChoice}"
+                                         Checked="AppearanceChoice_Checked" />
+                            <RadioButton x:Name="GdiAppearanceChoice" Content="GDI" Tag="Gdi"
+                                         GroupName="Appearance" Style="{StaticResource ThemeChoice}"
+                                         Checked="AppearanceChoice_Checked" Margin="6,0,0,0" />
+                            <RadioButton x:Name="NodAppearanceChoice" Content="Nod" Tag="Nod"
+                                         GroupName="Appearance" Style="{StaticResource ThemeChoice}"
+                                         Checked="AppearanceChoice_Checked" Margin="6,0,0,0" />
+                            <RadioButton x:Name="AlliesAppearanceChoice" Content="Allies" Tag="Allies"
+                                         GroupName="Appearance" Style="{StaticResource ThemeChoice}"
+                                         Checked="AppearanceChoice_Checked" Margin="6,0,0,0" />
+                            <RadioButton x:Name="SovietsAppearanceChoice" Content="Soviets" Tag="Soviets"
+                                         GroupName="Appearance" Style="{StaticResource ThemeChoice}"
+                                         Checked="AppearanceChoice_Checked" Margin="6,0,0,0" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="5" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Workshop" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <TextBlock Text="Workshop folder" FontWeight="SemiBold" />
+                        <TextBlock x:Name="WorkshopModeText" Margin="0,5,0,0" />
+                        <TextBlock x:Name="ConfiguredFolderText" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource MutedBrush}" />
+                        <TextBlock x:Name="ResolvedFolderText" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource MutedBrush}" />
+                        <TextBlock x:Name="WorkshopWarningText" Margin="0,8,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource AccentBrush}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                            <Button Content="Choose Folder…" Click="Browse_Click" Margin="0,0,8,0"
+                                    IsEnabled="{Binding CanRefresh}" />
+                            <Button Content="Use Automatic Discovery"
+                                    Click="UseAutomaticWorkshopDiscovery_Click"
+                                    IsEnabled="{Binding CanUseAutomaticWorkshopDiscovery}"
+                                    ToolTip="Forget the saved Workshop folder and return to automatic Steam library discovery." />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="5" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="Map installation" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <TextBlock Text="Default installation method" FontWeight="SemiBold" Margin="0,0,0,8" />
+                        <RadioButton x:Name="NativeCacheChoice" GroupName="InstallMethod" Tag="NativeCache"
+                                     Foreground="{DynamicResource TextBrush}"
+                                     Checked="InstallMethodChoice_Checked" Margin="0,0,0,4">
+                            <TextBlock Text="Native C&amp;C Cache — Recommended" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}" />
+                        </RadioButton>
+                        <TextBlock Text="Uses C&amp;C’s normal UGC cache. C&amp;C extracts and manages the playable map files."
+                                   TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="22,0,0,10" />
+                        <RadioButton x:Name="DirectLocalChoice" GroupName="InstallMethod" Tag="DirectLocal"
+                                     Foreground="{DynamicResource TextBrush}"
+                                     Checked="InstallMethodChoice_Checked" Margin="0,0,0,4">
+                            <TextBlock Text="Direct Local Install — Advanced" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextBrush}" />
+                        </RadioButton>
+                        <TextBlock Text="Extracts supported Workshop maps directly into the local map folder instead of C&amp;C’s UGC cache. C&amp;C’s User Maps screen may still show Download for these maps."
+                                   TextWrapping="Wrap" Foreground="{DynamicResource MutedBrush}" Margin="22,0,0,8" />
+                        <TextBlock Text="Changing this default does not convert maps that are already enabled. Remove and re-enable a map to switch its installation method."
+                                   TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" Margin="22,0,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="About" Click="About_Click" Margin="0,0,8,0" />
+            <Button Content="Close" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

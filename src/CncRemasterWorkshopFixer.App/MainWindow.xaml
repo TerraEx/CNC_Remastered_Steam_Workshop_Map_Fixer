@@ -1,0 +1,541 @@
+<Window x:Class="CncRemasterWorkshopFixer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:CncRemasterWorkshopFixer"
+        Title="C&amp;C Remastered Workshop Map Fixer v1.1.0"
+        Icon="Assets/Icons/TiberiumCore.ico"
+        Width="1080" Height="800" MinWidth="920" MinHeight="640"
+        WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBrush}"
+        Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI"
+        UseLayoutRounding="True" SnapsToDevicePixels="True"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="ToastVisibility" />
+        <Storyboard x:Key="ToastFadeIn">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.15" />
+        </Storyboard>
+        <Style x:Key="BrowsingPanel" TargetType="Expander">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+                            <ToggleButton Content="{TemplateBinding Header}" HorizontalContentAlignment="Left"
+                                          Foreground="{DynamicResource TextBrush}" Cursor="Hand"
+                                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="HeaderBorder" Background="Transparent" BorderBrush="Transparent"
+                                                BorderThickness="1" CornerRadius="3" Padding="2" MinHeight="22">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path x:Name="Chevron" Data="M 0,0 L 4,4 L 0,8" Margin="0,0,8,0"
+                                                      Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5"
+                                                      VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" />
+                                                <ContentPresenter VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chevron" Property="RenderTransform">
+                                                    <Setter.Value><RotateTransform Angle="90" /></Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="HeaderBorder" Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="PanelContent" ContentSource="Content" Margin="0,6,0,0" Visibility="Collapsed" />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="PanelContent" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="MapSearchBox" TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource PanelAltBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource SelectionBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                            <Grid>
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                                <TextBlock x:Name="SearchWatermark" Text="Map title or author…"
+                                           Foreground="{DynamicResource MutedBrush}" Margin="{TemplateBinding Padding}"
+                                           VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="SearchWatermark" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Each row needs its own menu instance: opening it stores that row in Tag,
+             and the popup doesn't inherit the row's DataContext through the visual tree. -->
+        <ContextMenu x:Key="MapRowContextMenu" x:Shared="False">
+            <MenuItem Tag="fix" Click="MapContextMenuItem_Click" />
+            <MenuItem Header="Remove Enabled Copy" Tag="remove" Click="MapContextMenuItem_Click" />
+            <MenuItem Header="Open Workshop Page" Tag="workshop" Click="MapContextMenuItem_Click" />
+            <MenuItem Header="Open Workshop Files Folder" Tag="source" Click="MapContextMenuItem_Click" />
+            <MenuItem Header="Open Enabled Map Folder" Tag="enabled" Click="MapContextMenuItem_Click" />
+            <MenuItem Header="Copy Workshop ID" Tag="copy" Click="MapContextMenuItem_Click" />
+        </ContextMenu>
+    </Window.Resources>
+    <Grid Margin="22,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Workshop Map Fixer" FontSize="25" FontWeight="SemiBold" />
+                <TextBlock Text="Make Steam-downloaded C&amp;C maps available in the game."
+                           Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"
+                        HorizontalAlignment="Right">
+                <Button Content="Settings" Click="Settings_Click" Margin="0,0,8,0"
+                        IsEnabled="{Binding CanOpenSettings}" />
+                <Button Content="Refresh" Click="Refresh_Click" IsEnabled="{Binding CanRefresh}" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="5" Padding="12,6" Margin="0,0,0,8">
+            <Expander x:Name="PathsPanel" Header="Workshop / cache paths" IsExpanded="False"
+                      Style="{StaticResource BrowsingPanel}" ToolTip="Show or hide Workshop and C&amp;C cache locations">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Workshop" Foreground="{DynamicResource MutedBrush}" Margin="0,0,12,3" />
+                <TextBlock Grid.Column="1" Text="{Binding WorkshopRootsDisplay}" TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding WorkshopRootsDisplay}" Margin="0,0,0,3" />
+                <TextBlock Grid.Row="1" Text="C&amp;C UGC cache" Foreground="{DynamicResource MutedBrush}" Margin="0,3,12,0" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding UgcCacheRoot}" TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding UgcCacheRoot}" Margin="0,3,0,0" />
+            </Grid>
+            </Expander>
+        </Border>
+
+        <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Border Background="{DynamicResource HeaderBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="0,0,0,1" Padding="10,7">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="{Binding SelectionSummary}" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource MutedBrush}" />
+                        <Grid Grid.Row="1" Margin="0,7,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                        ToolTip="Choose the inventory presentation">
+                                <RadioButton Content="List" GroupName="InventoryView"
+                                             Style="{StaticResource ThemeChoice}"
+                                             IsChecked="{Binding IsListView, Mode=TwoWay}" />
+                                <RadioButton Content="Gallery" GroupName="InventoryView" Margin="4,0,0,0"
+                                             Style="{StaticResource ThemeChoice}"
+                                             IsChecked="{Binding IsGalleryView, Mode=TwoWay}" />
+                            </StackPanel>
+                            <WrapPanel Grid.Column="2" HorizontalAlignment="Right">
+                                <Button Content="Select All" Click="SelectAll_Click"
+                                        IsEnabled="{Binding CanSelectAll}" Padding="7,4" Margin="0,0,4,0"
+                                        ToolTip="Select all visible maps for batch actions" />
+                                <Button Content="Select Enabled" Click="SelectInstalled_Click"
+                                        IsEnabled="{Binding CanSelectInstalled}" Padding="7,4" Margin="0,0,4,0"
+                                        ToolTip="Select visible maps currently present in C&amp;C's UGC cache" />
+                                <Button Content="Select Disabled / Outdated" Click="SelectMissingOrOutdated_Click"
+                                        IsEnabled="{Binding CanSelectMissingOrOutdated}" Padding="7,4" Margin="0,0,4,0" />
+                                <Button Content="Select Source Unavailable" Click="SelectSourceUnavailable_Click"
+                                        IsEnabled="{Binding CanSelectSourceUnavailable}" Padding="7,4" Margin="0,0,4,0" />
+                                <Button Content="Clear Selection" Click="ClearSelection_Click"
+                                        IsEnabled="{Binding CanClearSelection}" Padding="7,4" />
+                            </WrapPanel>
+                        </Grid>
+                        <Grid Grid.Row="2" Margin="0,8,0,0" IsEnabled="{Binding CanRefresh}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Search" Foreground="{DynamicResource MutedBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBox Grid.Column="1" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,12,0" VerticalContentAlignment="Center"
+                                     Style="{StaticResource MapSearchBox}" ToolTip="Search map titles or authors (partial matches, case-insensitive)" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock Text="Game" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <RadioButton Content="All" GroupName="GameFilter" Style="{StaticResource ThemeChoice}"
+                                             IsChecked="{Binding IsAllGames, Mode=TwoWay}" />
+                                <RadioButton Content="TD" ToolTip="Tiberian Dawn" GroupName="GameFilter" Style="{StaticResource ThemeChoice}" Margin="4,0,0,0"
+                                             IsChecked="{Binding IsTiberianDawn, Mode=TwoWay}" />
+                                <RadioButton Content="RA" ToolTip="Red Alert" GroupName="GameFilter" Style="{StaticResource ThemeChoice}" Margin="4,0,0,0"
+                                             IsChecked="{Binding IsRedAlert, Mode=TwoWay}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Map type" Foreground="{DynamicResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <RadioButton Content="All" GroupName="TypeFilter" Style="{StaticResource ThemeChoice}"
+                                             IsChecked="{Binding IsAllTypes, Mode=TwoWay}" />
+                                <RadioButton Content="SP" ToolTip="Single Player" GroupName="TypeFilter" Style="{StaticResource ThemeChoice}" Margin="4,0,0,0"
+                                             IsChecked="{Binding IsSinglePlayer, Mode=TwoWay}" />
+                                <RadioButton Content="MP" ToolTip="Multiplayer" GroupName="TypeFilter" Style="{StaticResource ThemeChoice}" Margin="4,0,0,0"
+                                             IsChecked="{Binding IsMultiplayer, Mode=TwoWay}" />
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+                <DataGrid x:Name="MapGrid" Grid.Row="1" ItemsSource="{Binding VisibleMaps}" AutoGenerateColumns="False" IsReadOnly="False"
+                          Visibility="{Binding ListVisibility}"
+                          SelectedItem="{Binding SelectedMap, Mode=TwoWay}"
+                          CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False"
+                          HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                          Background="Transparent" Foreground="{DynamicResource TextBrush}"
+                          BorderThickness="0" RowBackground="{DynamicResource PanelBrush}"
+                          AlternatingRowBackground="{DynamicResource PanelAltBrush}"
+                          HorizontalGridLinesBrush="{DynamicResource BorderBrush}"
+                          ColumnHeaderHeight="38" RowHeight="38"
+                          SelectionMode="Single" SelectionUnit="FullRow">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="{DynamicResource HeaderBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+                            <Setter Property="Padding" Value="10,0" />
+                            <Setter Property="Focusable" Value="True" />
+                            <!-- WPF owns SortDirection for mouse and keyboard sorting. This template
+                                 only makes that native state visible, so inactive headers cannot retain
+                                 stale glyphs when the active column changes. -->
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridColumnHeader">
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                Padding="{TemplateBinding Padding}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter VerticalAlignment="Center" />
+                                                <Path x:Name="SortChevron" Grid.Column="1" Margin="8,0,0,0"
+                                                      Width="9" Height="5" Stretch="Fill"
+                                                      Stroke="{DynamicResource TextBrush}" StrokeThickness="1.6"
+                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                      Data="M 0,5 L 4.5,0 L 9,5" Visibility="Collapsed" />
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="SortDirection" Value="Ascending">
+                                                <Setter TargetName="SortChevron" Property="Visibility" Value="Visible" />
+                                            </Trigger>
+                                            <Trigger Property="SortDirection" Value="Descending">
+                                                <Setter TargetName="SortChevron" Property="Visibility" Value="Visible" />
+                                                <Setter TargetName="SortChevron" Property="RenderTransformOrigin" Value="0.5,0.5" />
+                                                <Setter TargetName="SortChevron" Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="180" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                        <Style x:Key="UnsortableColumnHeader" TargetType="DataGridColumnHeader"
+                               BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                            <!-- The select column is an action surface, not sortable data,
+                                 so keyboard navigation begins with Map title. -->
+                            <Setter Property="Focusable" Value="False" />
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Padding" Value="10,0" />
+                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="ToolTip" Value="{Binding Details}" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="ContextMenu" Value="{StaticResource MapRowContextMenu}" />
+                            <EventSetter Event="ContextMenuOpening" Handler="MapContextMenu_Opening" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource SelectionBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource SelectionTextBrush}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style x:Key="MapTitleTextStyle" TargetType="TextBlock">
+                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="48" CanUserSort="False"
+                                            HeaderStyle="{StaticResource UnsortableColumnHeader}">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEnabled="{Binding IsBatchSelectable}" HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" ToolTip="Select for batch enablement, repair, or removal" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Map title" Binding="{Binding Title}" SortMemberPath="Title" Width="*" IsReadOnly="True"
+                                        ElementStyle="{StaticResource MapTitleTextStyle}" />
+                    <DataGridTextColumn Header="Author" Binding="{Binding AuthorText}" SortMemberPath="AuthorText"
+                                        Width="120" MinWidth="100" MaxWidth="140" IsReadOnly="True"
+                                        ElementStyle="{StaticResource MapTitleTextStyle}" />
+                    <DataGridTextColumn Header="Game" Binding="{Binding GameText}" SortMemberPath="GameText" Width="155" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" SortMemberPath="StatusText" Width="160" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                <Setter Property="TextWrapping" Value="Wrap" />
+                                <Setter Property="TextTrimming" Value="None" />
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Method" Binding="{Binding MethodText}" SortMemberPath="MethodText" Width="90" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <!-- Share the List view's filtered rows and navigation target so changing
+                     presentation preserves sorting, filters, and checked batch selection. -->
+                <ListBox x:Name="GalleryList" Grid.Row="1" ItemsSource="{Binding VisibleMaps}"
+                         SelectedItem="{Binding SelectedMap, Mode=TwoWay}"
+                         Visibility="{Binding GalleryVisibility}"
+                         Background="Transparent" BorderThickness="0" Padding="4"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         SelectionMode="Single">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel IsItemsHost="True" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Width" Value="264" />
+                            <Setter Property="Margin" Value="3" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                            <Setter Property="ToolTip" Value="{Binding Details}" />
+                            <Setter Property="ContextMenu" Value="{StaticResource MapRowContextMenu}" />
+                            <EventSetter Event="ContextMenuOpening" Handler="MapContextMenu_Opening" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Card" Background="{DynamicResource PanelAltBrush}"
+                                                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                                                CornerRadius="5" SnapsToDevicePixels="True">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                <Setter TargetName="Card" Property="BorderThickness" Value="2" />
+                                            </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="256" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Border Background="{DynamicResource PanelBrush}" CornerRadius="4,4,0,0" ClipToBounds="True">
+                                    <Grid>
+                                        <Image Source="{Binding PreviewImage}" Width="256" Height="256"
+                                               Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                                        <TextBlock Text="{Binding PreviewMessage}"
+                                                   Visibility="{Binding PreviewMessageVisibility}"
+                                                   Foreground="{DynamicResource MutedBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                                <Grid Grid.Row="1" Margin="10,9,10,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding IsBatchSelectable}" Margin="0,2,8,0"
+                                              Foreground="{DynamicResource TextBrush}"
+                                              VerticalAlignment="Top" ToolTip="Select for batch enablement, repair, or removal" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource TextBrush}"
+                                                   MaxHeight="42" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding GameText}" Foreground="{DynamicResource MutedBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextBrush}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding MethodText}" Foreground="{DynamicResource MutedBrush}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBlock Grid.Row="1" Text="{Binding EmptyMessageText}"
+                           Visibility="{Binding EmptyMessageVisibility}" Foreground="{DynamicResource MutedBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15"
+                           IsHitTestVisible="False" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" TextWrapping="Wrap"
+                       Foreground="{DynamicResource MutedBrush}" />
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Content="Open Workshop Page" Click="OpenWorkshopPage_Click"
+                        IsEnabled="{Binding CanOpenWorkshopPage}" Margin="0,0,8,0" />
+                <Button Content="{Binding RemoveSelectedText}" Click="RemoveSelected_Click"
+                        IsEnabled="{Binding CanRemoveSelected}" Margin="0,0,8,0" />
+                <Button Content="{Binding InstallSelectedText}" Click="InstallSelected_Click"
+                        IsEnabled="{Binding CanInstallSelected}" Margin="0,0,8,0" />
+                <Button Content="Enable All" Click="InstallAll_Click"
+                        ToolTip="Enable eligible maps across the complete inventory, including maps hidden by filters. Modified Locally maps are excluded."
+                        IsEnabled="{Binding CanInstallAll}" Style="{StaticResource PrimaryButton}" />
+            </WrapPanel>
+        </Grid>
+
+        <Border Grid.Row="4" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="5" Padding="10,6">
+            <Expander x:Name="ActivityPanel" Header="Activity" IsExpanded="False"
+                      Style="{StaticResource BrowsingPanel}" ToolTip="Show or hide the activity log">
+                <ListBox ItemsSource="{Binding Activity}" Height="38" Background="Transparent" Foreground="{DynamicResource MutedBrush}"
+                         BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </Expander>
+        </Border>
+        <!-- A Canvas overlays the map area without contributing to layout size.
+             Its bottom edge stays above Status and the primary action buttons. -->
+        <Canvas Grid.Row="2" Panel.ZIndex="10">
+            <Border x:Name="ToastOverlay" Canvas.Right="12" Canvas.Bottom="12" Width="380"
+                    Background="{DynamicResource PanelAltBrush}" BorderBrush="{Binding Background, ElementName=ToastAccent}"
+                    BorderThickness="1.5" CornerRadius="6" Padding="12"
+                    Visibility="{Binding IsToastVisible, Converter={StaticResource ToastVisibility}}"
+                    IsVisibleChanged="ToastOverlay_IsVisibleChanged"
+                    AutomationProperties.Name="{Binding ToastTitle}" AutomationProperties.LiveSetting="Polite">
+                <Border.Effect>
+                    <DropShadowEffect Color="Black" BlurRadius="14" ShadowDepth="3" Opacity="0.3" />
+                </Border.Effect>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="ToastAccent" CornerRadius="2">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#42A76B" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ToastSeverity}" Value="{x:Static local:ToastSeverity.Warning}">
+                                        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ToastSeverity}" Value="{x:Static local:ToastSeverity.Error}">
+                                        <Setter Property="Background" Value="#D95757" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                    <Border Grid.Column="1" Background="{Binding Background, ElementName=ToastAccent}"
+                            CornerRadius="16" Width="32" Height="32" Margin="10,0,10,0" VerticalAlignment="Top">
+                    <TextBlock FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="✓" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ToastSeverity}" Value="{x:Static local:ToastSeverity.Warning}">
+                                        <Setter Property="Text" Value="⚠" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding ToastSeverity}" Value="{x:Static local:ToastSeverity.Error}">
+                                        <Setter Property="Text" Value="✕" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    </Border>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="{Binding ToastTitle}" Foreground="{DynamicResource TextBrush}"
+                                   FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ToastMessage}" Foreground="{DynamicResource TextBrush}" FontSize="13"
+                                   TextWrapping="Wrap" MaxHeight="78" Margin="0,4,0,0" />
+                    </StackPanel>
+                    <Button Grid.Column="3" Content="×" Click="DismissToast_Click" Padding="5,0" Margin="8,0,0,0"
+                            VerticalAlignment="Top" ToolTip="Dismiss notification" AutomationProperties.Name="Dismiss notification" />
+                </Grid>
+            </Border>
+        </Canvas>
+    </Grid>
+</Window>

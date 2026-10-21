@@ -2,6 +2,8 @@
 
 C&C Remastered Steam Workshop Map Fixer is a Windows utility for Steam users of *Command & Conquer Remastered Collection*. Steam Workshop subscriptions can download map packages successfully while C&C still fails to make those maps available in-game; the Fixer bridges that missing step by enabling maps Steam has already downloaded.
 
+This repository contains the v1.1.0 application source, shared library and CLI under the MIT licence. Downloadable binary versions are listed separately on the Releases page.
+
 ## Download
 
 Official releases are available from the [GitHub Releases page](https://github.com/TerraEx/CNC_Remastered_Steam_Workshop_Map_Fixer/releases).
@@ -16,9 +18,10 @@ The executable is unsigned, so Windows SmartScreen may display a warning. Only d
 - Discovers C&C Remastered Workshop maps already downloaded by Steam, including maps from Workshop collections.
 - Supports both Tiberian Dawn and Red Alert maps.
 - Enables downloaded maps without making you find and download them again through C&C's in-game User Maps browser.
-- Provides List and Gallery views with map previews.
-- Handles Workshop updates and supports safe, attributable removal from the game.
+- Provides List and Gallery views with map previews, sortable author information, title/author search, and game/type filters.
+- Handles Workshop updates and supports safe, attributable removal from the game, with an optional **Also unsubscribe** action in v1.1.0.
 - Offers the recommended **Native C&C Cache** method and an advanced **Direct Local Install** method.
+- Includes System, Light and Dark themes, faction appearances, and a remembered Workshop-folder override in Settings.
 
 ## Screenshots
 
@@ -43,6 +46,8 @@ The executable is unsigned, so Windows SmartScreen may display a warning. Only d
 5. Click **Enable All**, or select maps and choose **Enable Selected**.
 6. Launch C&C Remastered.
 
+To remove enabled maps, select them and choose **Remove from Game**. Subscriptions stay unchanged unless you explicitly select **Also unsubscribe** in the v1.1.0 removal confirmation. Unsubscribe requires Steam to be running and signed in, with an installed Steam copy of C&C Remastered; it is requested only after local removal succeeds.
+
 ## Installation methods
 
 ### Native C&C Cache — Recommended
@@ -52,6 +57,25 @@ Native C&C Cache places the untouched Workshop package into C&C's native UGC cac
 ### Direct Local Install — Advanced
 
 Direct Local Install places supported map files directly into C&C's local map folders. The map can be installed and playable even though the in-game User Maps browser may still display **Download**, because that browser does not have C&C's native cached-package association for a direct installation.
+
+### Known Red Alert custom mission restart issue
+
+Red Alert Remastered has an intermittent bug when restarting or replaying custom single-player missions. Occasionally, the mission does not initialise correctly after a restart.
+
+Symptoms observed during testing include:
+
+- the opening custom-mission briefing not appearing;
+- mission triggers or scripted events failing to run;
+- mission timers failing to initialise;
+- units starting in an incorrect state.
+
+This was reproduced independently of the Workshop Fixer on a clean installation of C&C Remastered, with default settings, no mods active, and without manually subscribing through Steam Workshop; the maps were downloaded entirely through the game's own in-game map browser. It was also reproduced across multiple Red Alert custom missions.
+
+If this happens, restart the mission again or return to the menu and launch it normally. A subsequent restart may also initialise correctly.
+
+This issue has been observed in **Red Alert** custom missions during testing; it has **not been reproduced in Tiberian Dawn**.
+
+**Example video:** [Red Alert custom mission restart bug demonstration](https://youtu.be/nSV65BP1jjg)
 
 ## Why I made this
 
@@ -66,16 +90,43 @@ You find something you want to play. You subscribe to it. You run the app, click
 ## Safety and privacy
 
 - Workshop source packages are treated as read-only.
-- The Fixer does not subscribe or unsubscribe Workshop items and does not modify Steam Workshop manifests.
+- The Fixer does not subscribe to Workshop items or directly edit Steam Workshop manifests. In v1.1.0, it can request unsubscribe through the signed-in Steam client only when you explicitly select **Also unsubscribe** during removal.
 - It does not silently overwrite modified or unowned local files.
 - It collects no telemetry.
 - Steam's public metadata endpoint is used to resolve Workshop metadata; no Steam login or API key is required.
 
+## Build
+
+Use Windows x64 and the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). NuGet restores the pinned Steamworks.NET 2024.8.0 managed wrapper.
+
+The proprietary Valve native dependency is supplied separately and is not covered by this repository's MIT licence. Obtain `steam_api64.dll` for Steamworks SDK 1.60 from a legitimate SDK distribution; the matching binary is also available in the official [Steamworks.NET 2024.8.0 tag](https://github.com/rlabrecque/Steamworks.NET/blob/2024.8.0/com.rlabrecque.steamworks.net/Plugins/steam_api64.dll). Place it at `src/CncRemasterWorkshopFixer.App/Native/win-x64/steam_api64.dll` (create the directories). This file is ignored by Git. Its expected SHA-256 is:
+
+```text
+1ADD7F151FA644870A735AE86E68D1F019F296130D8E7C0A7ED3ECC7482DCCBC
+```
+
+From the repository root, run:
+
+```powershell
+dotnet restore CncRemasterWorkshopFixer.slnx
+dotnet build CncRemasterWorkshopFixer.slnx -c Release --no-restore
+```
+
+The app is `src/CncRemasterWorkshopFixer.App/bin/Release/net10.0-windows/CncRemasterWorkshopFixer.App.exe`; keep `steam_api64.dll` and the other build output files beside it. The CLI is `src/CncRemasterWorkshopFixer.Cli/bin/Release/net10.0/CncRemasterWorkshopFixer.Cli.exe`; run it with `--help` for options. Running the application requires the .NET 10 Desktop Runtime. Steam account operations require Steam and an installed Steam copy of C&C Remastered.
+
 ## Distribution and licensing
 
-The application is distributed as closed-source software. Its source code is not currently publicly distributed. Unmodified application and release packages may be redistributed, but only the official [GitHub Releases page](https://github.com/TerraEx/CNC_Remastered_Steam_Workshop_Map_Fixer/releases) provides builds whose integrity is guaranteed by the author. See [LICENSE](LICENSE) for the application distribution terms. Third-party and runtime licences and notices are included in each release package.
+The original v1.1.0 application source and included application resources published in this repository are licensed under the standard [MIT licence](LICENSE), copyright (c) 2026 Terra_Ex. Only downloads from the official [GitHub Releases page](https://github.com/TerraEx/CNC_Remastered_Steam_Workshop_Map_Fixer/releases) are official builds from the author.
 
-The application includes work informed by the Iron Curtain [`cnc-formats` MEG implementation](https://github.com/iron-curtain-engine/cnc-formats/tree/77da596ed72a1201740e054855bf2ff60640bfa9/src/meg), used under its MIT licence option, and [Petrolution's public Petroglyph MEG format documentation](https://modtools.petrolution.net/docs/MegFileFormat). Those third-party terms do not make this application MIT-licensed.
+Historical v1.0.0 binary releases retain the [distribution terms shipped with that release](https://github.com/TerraEx/CNC_Remastered_Steam_Workshop_Map_Fixer/blob/v1.0.0/LICENSE) and their accompanying third-party notices. This source publication does not retroactively relicense those binaries.
+
+Third-party components retain their own terms; this repository's MIT licence does not relicense them. Preserve the applicable [licences and notices](licenses) when distributing components or runtimes.
+
+The application includes work informed by the Iron Curtain [`cnc-formats` MEG implementation](https://github.com/iron-curtain-engine/cnc-formats/tree/77da596ed72a1201740e054855bf2ff60640bfa9/src/meg), used under its MIT licence option, and [Petrolution's public Petroglyph MEG format documentation](https://modtools.petrolution.net/docs/MegFileFormat). The Iron Curtain MIT notice is retained in `licenses/iron-curtain-cnc-formats-LICENSE-MIT.txt`; no cnc-formats source is vendored or required at runtime.
+
+- [Steamworks.NET 2024.8.0](https://github.com/rlabrecque/Steamworks.NET/tree/2024.8.0) is restored from NuGet under MIT; see `licenses/Steamworks.NET-LICENSE.txt` and `licenses/Steamworks-NOTICE.txt`.
+- Valve's native Steam API is supplied separately and remains subject to Valve's applicable SDK terms, separately from Steamworks.NET and this source licence. Consult the [Steamworks API documentation](https://partner.steamgames.com/doc/sdk/api) and applicable SDK agreement before redistributing it. No Valve binaries or SDK source are included in this repository.
+- .NET/WPF are external dependencies. Their supplied licence and third-party notices are retained in `licenses/dotnet-LICENSE.txt` and `licenses/dotnet-ThirdPartyNotices.txt`; include applicable notices with runtime distributions.
 
 ## Disclaimer
 
